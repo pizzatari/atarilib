@@ -7,17 +7,17 @@
 ;           containing the game project files.
 ; -----------------------------------------------------------------------------
 
-    include "../atarilib/include/bankswitch.h"
-    include "../atarilib/include/bits.h"
-    include "../atarilib/include/debug.h"
-    include "../atarilib/include/draw.h"
-    include "../atarilib/include/io.h"
-    include "../atarilib/include/position.h"
-    include "../atarilib/include/task.h"
-    include "../atarilib/include/time.h"
-    include "../atarilib/include/util.h"
-    include "../atarilib/include/video.h"
+    include "bankswitch.h"
+    include "bits.h"
+    include "debug.h"
+    include "draw.h"
+    include "io.h"
+    include "position.h"
+    include "task.h"
+    include "time.h"
+    include "util.h"
+    include "video.h"
 
     ; TODO: move these dasm files elsewhere
-    include "../atarilib/include/macro.h"
-    include "../atarilib/include/vcs.h"
+    include "macro.h"
+    include "vcs.h"
