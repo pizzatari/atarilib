@@ -1,6 +1,6 @@
 ; -----------------------------------------------------------------------------
 ; Desc:     Defines positioning subroutines.
-; Param:    prefix string
+; Param:    subroutine prefix string
 ; Output:
 ; -----------------------------------------------------------------------------
     MAC INCLUDE_POSITIONING_SUBS

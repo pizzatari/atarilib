@@ -19,6 +19,5 @@
     include "util.h"
     include "video.h"
 
-    ; TODO: move these dasm files elsewhere
-    include "macro.h"
-    include "vcs.h"
+    include "3rd-party/macro.h"
+    include "3rd-party/vcs.h"
