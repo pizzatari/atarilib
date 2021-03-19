@@ -12,7 +12,7 @@
 ; Inputs:    
 ; Ouputs:
 ; -----------------------------------------------------------------------------
-SoundQueueClear SUBROUTINE
+SoundClear SUBROUTINE
     ldx #SOUND_QUEUE_LEN-1
     lda #SOUND_ID_NONE
     ldy #0
@@ -31,11 +31,11 @@ SoundQueueClear SUBROUTINE
 ;           Arg2 (sound id)
 ; Ouputs:
 ; -----------------------------------------------------------------------------
-SoundQueuePlay2 SUBROUTINE
-    jsr SoundQueuePlay
+SoundPlay2 SUBROUTINE
+    jsr SoundPlay
     lda Arg2
     sta Arg1
-    jsr SoundQueuePlay
+    jsr SoundPlay
     rts
 
 ; -----------------------------------------------------------------------------
@@ -43,7 +43,7 @@ SoundQueuePlay2 SUBROUTINE
 ; Inputs:   Arg1 (sound id)
 ; Ouputs:
 ; -----------------------------------------------------------------------------
-SoundQueuePlay SUBROUTINE
+SoundPlay SUBROUTINE
     lda Arg1
     ;cmp #SOUND_ID_NONE
     beq .Return
@@ -102,7 +102,7 @@ SoundQueuePlay SUBROUTINE
 ; Inputs:
 ; Ouputs:
 ; -----------------------------------------------------------------------------
-SoundQueueTick SUBROUTINE
+SoundTick SUBROUTINE
     ldx #SOUND_QUEUE_LEN-1      ; X = current queue index
 .Loop
     ; check if there's a sound effect in the queue

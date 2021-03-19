@@ -12,6 +12,7 @@
     include "debug.h"
     include "draw.h"
     include "io.h"
+    include "math.h"
     include "position.h"
     include "task.h"
     include "time.h"

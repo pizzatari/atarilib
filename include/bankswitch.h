@@ -16,7 +16,7 @@ BS_VERSION = 2  ; 0=original; 1=optimized1; 2=optimized2
 #if BS_VERSION == 2
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
-; Inputs:   dest proc, dest bank num, source bank #
+; Params:   dest proc, dest bank num, source bank #
 ; Outputs:
 ; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ BS_VERSION = 2  ; 0=original; 1=optimized1; 2=optimized2
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Jump to a label in another bank.
-; Inputs:   destination proc, destination bank #
+; Params:   destination proc, destination bank #
 ; Outputs:
 ; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
@@ -50,6 +50,7 @@ BS_VERSION = 2  ; 0=original; 1=optimized1; 2=optimized2
     MAC INCLUDE_BANKSWITCH_SUBS
     ; -------------------------------------------------------------------------
     ; Desc:     Call a procedure in another bank.
+    ; Params:   source bank #
     ; Inputs:   X register (destination proc idx)
     ;           Y register (destination bank #)
     ;           A register (source bank #)
@@ -81,6 +82,7 @@ Bank{1}_CallBank SUBROUTINE
 
     ; -------------------------------------------------------------------------
     ; Desc:     Jump to a label in another bank.
+    ; Params:   source bank #
     ; Inputs:   X register (destination proc idx)
     ;           Y register (destination bank #)
     ; Outputs:
@@ -102,7 +104,7 @@ Bank{1}_JumpBank SUBROUTINE
 #if BS_VERSION < 2
 ; -----------------------------------------------------------------------------
 ; Desc:     Jump to a label in another bank.
-; Inputs:   destination proc, destination bank #
+; Params:   destination proc, destination bank #
 ; Outputs:
 ; -----------------------------------------------------------------------------
     MAC JUMP_BANK
@@ -125,7 +127,7 @@ Bank{1}_JumpBank SUBROUTINE
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
-; Inputs:   dest proc, dest bank num, source bank #
+; Params:   dest proc, dest bank num, source bank #
 ;           A register (optional subroutine parameter)
 ; Outputs:
 ; -----------------------------------------------------------------------------
@@ -156,6 +158,7 @@ Bank{1}_JumpBank SUBROUTINE
     ;
     ;           This subroutine must exist in each bank at the same offset.
     ;
+    ; Params:   source bank #
     ; Inputs:   brk padding byte (destination bank #)
     ;           stack variable (source bank #)
     ;           TempPtr (label to jump to or subroutine to call)
