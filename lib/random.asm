@@ -42,8 +42,8 @@ RandGalois16 SUBROUTINE
     rts
 
 ; -----------------------------------------------------------------------------
-; Desc:     Same as RandGalois16 but generates the sequence in reverse and
-;           uses $6801 as the tap.
+; Desc:     Same as RandGalois16 but generates the sequence in reverse sequence
+;           order and uses $6801 as the tap.
 ; Input:    X register (selects which LFSR)
 ;           RandLFSR16 (current number)
 ; Output:   RandLFSR16 (previous number)
