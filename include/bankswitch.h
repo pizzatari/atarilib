@@ -16,7 +16,7 @@ BS_VERSION = 2  ; 0=original; 1=optimized1; 2=optimized2
 #if BS_VERSION == 2
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
-; Params:   dest proc, dest bank num, source bank #
+; Params:   dest proc index, dest bank num, source bank #
 ; Outputs:
 ; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
@@ -28,22 +28,23 @@ BS_VERSION = 2  ; 0=original; 1=optimized1; 2=optimized2
         ldx #.DSTPROC
         ldy #.DSTBANK
         lda #.SRCBANK
-        jsr Bank{2}_CallBank
+        jsr Bank{3}_CallBank
     ENDM
 
 ; -----------------------------------------------------------------------------
-; Desc:     Jump to a label in another bank.
-; Params:   destination proc, destination bank #
+; Desc:     Jump to a label in another bank. Subroutine does not return.
+; Params:   dest proc index, dest bank num, source bank #
 ; Outputs:
 ; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
     MAC JUMP_BANK
 .DSTPROC    SET {1}
 .DSTBANK    SET {2}
+.SRCBANK    SET {3}
 
     ldx #.DSTPROC
     ldy #.DSTBANK
-    jmp Bank{2}_JumpBank
+    jmp Bank{3}_JumpBank
 
     ENDM
 
