@@ -27,8 +27,8 @@ BOUNDARY_BEGIN SET *
 
     MAC PAGE_BOUNDARY_CHECK
 .Label SET {1}
-        IF >BOUNDARY_BEGIN != >*
-            ECHO .Label, "crossed a page boundary!", (BOUNDARY_BEGIN&$ff00), *
+        IF >BOUNDARY_BEGIN != >(*-1)
+            ECHO .Label, "crossed a page boundary!", (BOUNDARY_BEGIN&$ff00), "Address:", *
         ENDIF
     ENDM
 

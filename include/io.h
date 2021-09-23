@@ -6,6 +6,8 @@ OBJ_M1          = 3     ; missile 1
 OBJ_BL          = 4     ; ball
 
 ; Console switches
+
+; SWCHB
 SWITCH_DIFF1    = %10000000
 SWITCH_DIFF0    = %01000000
 SWITCH_BW       = %00001000
@@ -13,13 +15,17 @@ SWITCH_SELECT   = %00000010
 SWITCH_RESET    = %00000001
 
 ; Controllers
-JOY_FIRE        = %10000000
 
+; INPT4, INPT5
+JOY_FIRE       = %10000000
+
+; SWCHA
 JOY0_RIGHT      = %10000000
 JOY0_LEFT       = %01000000
 JOY0_DOWN       = %00100000
 JOY0_UP         = %00010000
 
+; SWCHA
 JOY1_RIGHT      = JOY0_RIGHT >> 4
 JOY1_LEFT       = JOY0_LEFT  >> 4
 JOY1_DOWN       = JOY0_DOWN  >> 4

@@ -1,6 +1,19 @@
+; Objects
+P0_OBJ              = 0
+P1_OBJ              = 1
+M0_OBJ              = 2
+M1_OBJ              = 3
+BL_OBJ              = 4
+
+; Assigning HORIZ_POSITION_EXTRAS will define the additional subroutines.
+;	Bank{1}_HorizPositionBG
+;	Bank{1}_HorizPositionPF
+;	HORIZ_POSITION_EXTRAS = 1					include subroutines
+;	HORIZ_POSITION_EXTRAS = 0 or undefined		don't include subroutines
+
 ; -----------------------------------------------------------------------------
 ; Desc:     Defines positioning subroutines.
-; Param:    subroutine prefix string
+; Param:    bank #
 ; Output:
 ; -----------------------------------------------------------------------------
     MAC INCLUDE_POSITIONING_SUBS
@@ -14,15 +27,15 @@
 ;           Object indexes:
 ;               0 = Player 0
 ;               1 = Player 1
-;               2 = Missile 0
-;               3 = Missile 1
-;               4 = Ball
+;               3 = Missile 0
+;               4 = Missile 1
+;               5 = Ball
 ;
 ;           Follow up with:
 ;               sta WSYNC
 ;               sta HMOVE
 ; -----------------------------------------------------------------------------
-{1}HorizPosition SUBROUTINE
+Bank{1}_HorizPosition SUBROUTINE
     sec             ; 2 (2)
     sta WSYNC       ; 3 (5) 
 
@@ -47,7 +60,7 @@
     IFCONST HORIZ_POSITION_EXTRAS
 
 ; performs horizontal positioning while drawing a background color
-{1}HorizPositionBG SUBROUTINE  ; 6 (6)
+Bank{1}_HorizPositionBG SUBROUTINE  ; 6 (6)
     sec             ; 2 (8)
     sta WSYNC
     sty COLUBK      ; 3 (3)
@@ -69,7 +82,7 @@
 
 ; performs horizontal positioning while drawing a playfield pattern
 ; this must enter on or before cycle 62
-{1}HorizPositionPF SUBROUTINE
+Bank{1}_HorizPositionPF SUBROUTINE
     sty PF0         ; 3 (65)
     sec             ; 2 (67)
     sty PF1         ; 3 (70)

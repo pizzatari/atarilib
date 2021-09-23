@@ -122,12 +122,29 @@
         nop                         ; +2
     ENDM
 
+    MAC SLEEP_29
+        ldy #4                      ; +2
+.Sleep
+        dey                         ; +2
+        bpl .Sleep                  ; +3    5 * 5 - 1 = 24 cycles
+        bit $0                      ; +3
+    ENDM
+
     MAC SLEEP_30
         ldy #4                      ; +2
 .Sleep
         dey                         ; +2
         bpl .Sleep                  ; +3    5 * 5 - 1 = 24 cycles
         nop                         ; +2
+        nop                         ; +2
+    ENDM
+
+    MAC SLEEP_31
+        ldy #4                      ; +2
+.Sleep
+        dey                         ; +2
+        bpl .Sleep                  ; +3    5 * 5 - 1 = 24 cycles
+        bit $0                      ; +3
         nop                         ; +2
     ENDM
 

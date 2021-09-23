@@ -107,3 +107,37 @@
         lda #<.Addr5
         sta .Vars+10
     ENDM
+
+    ; -----------------------------------------------------------------------------
+    ; Desc:     Copies a 2-byte integer.
+    ; Param:    destination, source
+    ; Input:
+    ; Output:
+    ; -----------------------------------------------------------------------------
+    MAC COPY_INT2
+.Dst SET {1}
+.Src SET {2}
+
+    lda .Src
+    sta .Dst
+    lda .Src+1
+    sta .Dst+1
+    ENDM
+
+    ; -----------------------------------------------------------------------------
+    ; Desc:     Copies a 3-byte integer.
+    ; Param:    destination, source
+    ; Input:
+    ; Output:
+    ; -----------------------------------------------------------------------------
+    MAC COPY_INT3
+.Dst SET {1}
+.Src SET {2}
+
+    lda .Src
+    sta .Dst
+    lda .Src+1
+    sta .Dst+1
+    lda .Src+2
+    sta .Dst+2
+    ENDM

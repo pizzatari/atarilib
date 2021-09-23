@@ -1,14 +1,14 @@
 ; -----------------------------------------------------------------------------
 ; Desc:     Generates a multiplication table.
-; Params:   string prefix, factor, length of table
+; Params:   bank #, factor, length of table
 ; Outputs:
 ; -----------------------------------------------------------------------------
-    MAC MULTIPLY_TABLE
+    MAC INCLUDE_MULTIPLY_TABLE
 .factor SET {2}
 .length SET {3}
 .cnt SET 0
 
-{1}Mult{2}
+Bank{1}_Mult{2}
     LIST OFF
 
     REPEAT .length
@@ -22,15 +22,15 @@
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Generates a power table.
-; Params:   string prefix, factor, length of table
+; Params:   bank #, factor, length of table
 ; Outputs:
 ; -----------------------------------------------------------------------------
-    MAC POWER_TABLE 
+    MAC INCLUDE_POWER_TABLE 
 .factor SET {2}
 .length SET {3}
 .sum SET .factor
 
-{1}Pow{2}
+Bank{1}_Pow{2}
     dc.b 1
 
     LIST OFF
