@@ -326,7 +326,6 @@
     ENDM
 #endif
 
-
 ; -----------------------------------------------------------------------------
 ; Desc:     Draws 6 medium spaced sprites in a row.
 ; Inputs:   pointers variable (array of 6 words)
@@ -360,6 +359,47 @@
         sta GRP1                ; 3 (59)    Sprite 6 [56-60]
         dey                     ; 2 (61)
         bpl .Loop               ; 3 (64)
+    ENDM
+
+; -----------------------------------------------------------------------------
+; Desc:     Draws 6 medium spaced sprites in a row.
+; Params:   SpritePtrs (array of 6 words)
+;           PalettePtr (pointer to palette)
+; Inputs:   Y register (sprite height - 1)
+; Outputs:
+;
+;   ldy #HEIGHT-1
+;   DRAW_6_COLOR_SPRITES SpritePtrs, PalettePtr
+;
+; -----------------------------------------------------------------------------
+    MAC DRAW_6_COLOR_SPRITES
+.PTRS   SET {1}
+.PAL    SET {2}
+
+.Loop
+        lda (.PAL),y            ; 5 (70)
+        sta WSYNC               ; 3 (73)
+
+        sta COLUP0              ; 3 (3)
+        sta COLUP1              ; 3 (6)
+
+        lda (.PTRS),y           ; 5 (11) 
+        sta GRP0                ; 3 (14)    Sprite 1 [30-32]
+        lda (.PTRS+2),y         ; 5 (19)
+        sta GRP1                ; 3 (22)    Sprite 2 [35-37]
+        lda (.PTRS+6),y         ; 5 (27)
+        tax                     ; 2 (29)
+        lda (.PTRS+4),y         ; 5 (34)
+        nop                     ; 2 (36)
+        sta GRP0                ; 3 (39)    Sprite 3 [40-44]
+        nop                     ; 2 (41)
+        stx GRP1                ; 3 (44)    Sprite 4 [46-49]
+        lda (.PTRS+8),y         ; 5 (49)
+        sta GRP0                ; 3 (52)    Sprite 5 [51-54]
+        lda (.PTRS+10),y        ; 5 (57)
+        sta GRP1                ; 3 (60)    Sprite 6 [56-60]
+        dey                     ; 2 (62)
+        bpl .Loop               ; 3 (65)
     ENDM
 
 ; -----------------------------------------------------------------------------

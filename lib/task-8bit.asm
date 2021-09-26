@@ -1,14 +1,9 @@
 ; -----------------------------------------------------------------------------
-; Desc:     Adds a task to the front of the queue.
-; Inputs:   A register (task id)
-;           X register (argument)
+; Desc:     Adds a task to the front of the queue. Items shift down.
+; Inputs:   X register (task id)
+;           A register (argument)
 ;           TaskQueue
 ; Outputs:
-; Notes:
-;   0,0 -> 1,0
-;   0,1 -> 1,1
-;   1,0 -> 1,1
-;   1,1 -> 1,1
 ; -----------------------------------------------------------------------------
 QueueAdd SUBROUTINE
     ldy TaskQueue
@@ -19,66 +14,50 @@ QueueAdd SUBROUTINE
     ldy TaskArg
     sty TaskArg+1
 .Save
-    stx TaskArg
-    sta TaskQueue
+    stx TaskQueue
+    sta TaskArg
     rts
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Replaces a task.
-; Inputs:   A register (new task id)
-;           X register (argument)
-;           Y register (old task id)
-;           TaskQueue
-; Outputs:  A register (new task id or 0 on full)
+; Inputs:   X register (old task id)
+;           Y register (new task id)
+;           A register (argument)
+; Outputs:  carry register (0 on success; 1 on fail)
 ; -----------------------------------------------------------------------------
 QueueReplace SUBROUTINE
-    cpy TaskQueue
+    sec
+
+    ; search for task
+    cpx TaskQueue
     bne .Next1
 
-    stx TaskArg
-    sta TaskQueue
+    sty TaskQueue
+    sta TaskArg
     rts
 
 .Next1
-    cpy TaskQueue+1
+    cpx TaskQueue+1
     bne .NotFound
 
-    stx TaskArg+1
-    sta TaskQueue+1
+    sty TaskQueue+1
+    sta TaskArg+1
     rts
      
 .NotFound
-    lda #0
     rts
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Removes a task.
-; Inputs:   A register (task id)
-;           TaskQueue
-; Outputs:  A register (task id or 0 on not found)
+; Inputs:   X register (task id)
+; Outputs:  carry register (0 on success; 1 on fail)
 ; -----------------------------------------------------------------------------
+#if 0
 QueueRemove SUBROUTINE
-    tay
-    lda #0
-
-    cpy TaskQueue
-    bne .Next1
-    sta TaskArg
-    sta TaskQueue
-    tya
+    ldy #0
+    jsr QueueReplace
     rts
-
-.Next1
-    cpy TaskQueue+1
-    bne .NotFound
-    sta TaskArg+1
-    sta TaskQueue+1
-    tya
-    rts
-     
-.NotFound
-    lda #0
-    rts
+#endif
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Clears the queue.
@@ -94,53 +73,53 @@ QueueClear SUBROUTINE
     rts
 
 ; -----------------------------------------------------------------------------
-; Desc:     Removes the trailing task, which may be in the high or low nibble.
+; Desc:     Removes the trailing task.
 ; Inputs:   TaskQueue
-; Outputs:  A register (task id removed or 0 on empty)
-;           X register (task arg removed)
+; Outputs:  X register (task id removed or 0 on empty)
+;           A register (task arg removed)
 ; Notes:
 ;   0,0 -> 0,0
 ;   1,0 -> 0,0
 ;   0,1 -> 0,0
 ;   1,1 -> 0,1
 ; -----------------------------------------------------------------------------
+#if 0
 QueueRemoveTail SUBROUTINE
     ; check if the tail is empty
-    ldy TaskQueue+1
+    ldx TaskQueue+1
     beq .Clear
-    ldx TaskArg+1
+
     ; shift right
-    lda TaskArg
-    sta TaskArg+1
-    lda TaskQueue
-    sta TaskQueue+1
-    tya
+    lda TaskArg+1
+    ldy TaskArg
+    sty TaskArg+1
+    ldy TaskQueue
+    sty TaskQueue+1
     rts
 
 .Clear
-    ldy TaskQueue
-    ldx TaskArg
-    lda #0
-    sta TaskQueue
-    sta TaskArg
-    tya
+    ldx TaskQueue
+    lda TaskArg
+    ldy #0
+    sty TaskQueue
+    sty TaskArg
     rts
+#endif
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Get the trailing task, which may be in the high or low byte.
 ;           TaskQueue is unmodified.
 ; Inputs:   TaskQueue
-; Outputs:  A register (task id or 0 on empty)
-;           X register (task arg)
+; Outputs:  X register (task id or 0 on empty)
+;           A register (task arg)
 ; -----------------------------------------------------------------------------
 QueueGetTail SUBROUTINE
-    ldy TaskQueue+1
+    ldx TaskQueue+1
     beq .Next
-    ldx TaskArg+1
-    tya
+    lda TaskArg+1
     rts
 .Next
-    ldx TaskArg
-    lda TaskQueue
+    ldx TaskQueue
+    lda TaskArg
     rts
 
