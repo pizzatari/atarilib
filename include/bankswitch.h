@@ -1,9 +1,13 @@
 ; -----------------------------------------------------------------------------
 ; Macros and subroutines for calling a procedure in another bank.
 ;
-;   CALL_BANK #, #, #           ; 70 cycle overhead
-;   JUMP_BANK #, #, #           ; 30 cycle overhead
-;   INCLUDE_BANKSWITCH_SUBS #
+;   Routines must reside at the same address offset within each bank.
+;
+;   INCLUDE_BANKSWITCH_SUBS (bank#)
+;
+;   CALL_BANK Procedure         ; 57 cycle overhead
+;   JUMP_BANK Label             ; 24 cycle overhead
+;
 ; -----------------------------------------------------------------------------
 
 BS_SIZEOF = $2d
@@ -11,86 +15,80 @@ BS_VERSION = 2
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
-; Params:   dest proc index, dest bank num, source bank #
+; Params:   procedure to call
 ; Outputs:
-; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
     MAC CALL_BANK
-.DSTPROC    SET {1}
-.DSTBANK    SET {2}
-.SRCBANK    SET {3}
+.PROC       SET {1}
+.DEST_BANK  SET (((.PROC & $f000) - BANK0_RORG) >> 13)
+.CALL_SUB   SET (Bank0_CallBank & $0fff) | (. & $f000)
 
-        ldx #.DSTPROC           ; 2 (2)
-        ldy #.DSTBANK           ; 2 (4)
-        lda #.SRCBANK           ; 2 (6)
-        jsr Bank{3}_CallBank    ; 6 (12)
+        ldx #.DEST_BANK         ; 2 (2)
+        lda #<.PROC             ; 2 (4)
+        ldy #>.PROC             ; 2 (6)
+        jsr .CALL_SUB           ; 6 (12)
     ENDM
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Jump to a label in another bank. Subroutine does not return.
-; Params:   dest proc index, dest bank num, source bank #
+; Params:   label to jump to
 ; Outputs:
-; Notes:    Wrapper for compatibility.
 ; -----------------------------------------------------------------------------
     MAC JUMP_BANK
-.DSTPROC    SET {1}
-.DSTBANK    SET {2}
-.SRCBANK    SET {3}
+.LABEL      SET {1}
+.DEST_BANK  SET (((.LABEL & $f000) - BANK0_RORG) >> 13)
+.JUMP_SUB   SET (Bank0_JumpBank & $0fff) | (. & $f000)
 
-    ldx #.DSTPROC               ; 2 (2)
-    ldy #.DSTBANK               ; 2 (4)
-    jmp Bank{3}_JumpBank        ; 3 (7)
+        ldx #.DEST_BANK         ; 2 (2)
+        lda #<.LABEL            ; 2 (4)
+        ldy #>.LABEL            ; 2 (6)
+        jmp .JUMP_SUB           ; 3 (9)
     ENDM
 
     MAC INCLUDE_BANKSWITCH_SUBS
     ; -------------------------------------------------------------------------
     ; Desc:     Call a procedure in another bank.
-    ; Params:   source bank #
-    ; Inputs:   X register (destination proc idx)
-    ;           Y register (destination bank #)
-    ;           A register (source bank #)
+    ; Inputs:   X register (destination bank #)
+    ;           A register (destination subroutine LSB)
+    ;           Y register (destination subroutine MSB)
     ; Outputs:
     ; -------------------------------------------------------------------------
-Bank{1}_CallBank SUBROUTINE
-    ; map procedure idx to procedure
-    pha                         ; 3 (3)     save source bank #
-    lda Bank{1}_ProcTableLo,x   ; 4 (7)
-    sta TempPtr                 ; 3 (10)
-    lda Bank{1}_ProcTableHi,x   ; 4 (14)
-    sta TempPtr+1               ; 3 (17)
+Bank{1}_CallBank SUBROUTINE 
 
-    ; do the bank switch
-    lda BANK0_HOTSPOT,y         ; 4 (21)
+    sta TempPtr                 ; 3 (3)     save subroutine
+    sty TempPtr+1               ; 3 (6)
 
-    ; do the subroutine call
-    lda #>(.Return-1)           ; 2 (23)    push the return address
-    pha                         ; 3 (26)
-    lda #<(.Return-1)           ; 2 (28)
-    pha                         ; 3 (31)
-    jmp (TempPtr)               ; 5 (36)
+    ; save source bank number
+    lda #{1}                    ; 2 (8)
+    pha                         ; 3 (11)
+
+    lda BANK0_HOTSPOT,x         ; 4 (15)    do the bankswitch
+
+    lda #>(.Return-1)           ; 2 (17)    push the return address
+    pha                         ; 3 (20)
+    lda #<(.Return-1)           ; 2 (22)
+    pha                         ; 3 (25)
+
+    jmp (TempPtr)               ; 5 (30)    do the subroutine call
 
 .Return
-    pla                         ; 4 (46)    fetch source bank # 
-    tay                         ; 2 (48)
-    lda BANK0_HOTSPOT,y         ; 4 (52)    do the return bank switch
-    rts                         ; 6 (58)
+    pla                         ; 3 (33)    retrieve source bank number
+    tax                         ; 2 (35)
+    lda BANK0_HOTSPOT,x         ; 4 (39)    do the return bank switch
+    rts                         ; 6 (45)
 
     ; -------------------------------------------------------------------------
     ; Desc:     Jump to a label in another bank.
-    ; Params:   source bank #
-    ; Inputs:   X register (destination proc idx)
-    ;           Y register (destination bank #)
+    ; Inputs:   X register (destination bank #)
+    ;           A register (destination subroutine LSB)
+    ;           Y register (destination subroutine MSB)
     ; Outputs:
     ; -------------------------------------------------------------------------
 Bank{1}_JumpBank SUBROUTINE
-    ; map procedure idx to procedure
-    lda Bank{1}_ProcTableLo,x   ; 4 (4)
-    sta TempPtr                 ; 3 (7)
-    lda Bank{1}_ProcTableHi,x   ; 4 (11)
-    sta TempPtr+1               ; 3 (14)
+    ; push destination address
+    sta TempPtr                 ; 3 (3)     save subroutine
+    sty TempPtr+1               ; 3 (6)
 
-    ; do the bank switch
-    lda BANK0_HOTSPOT,y         ; 4 (18)
-    jmp (TempPtr)               ; 5 (23)
-
+    lda BANK0_HOTSPOT,x         ; 4 (10)    do the bankswitch
+    jmp (TempPtr)               ; 5 (15)    call the subroutine
     ENDM
