@@ -161,11 +161,11 @@
         LIST ON
 
         ; unpack the bits
-        lda .VAR,x
-        and #.MASK
+        lda .VAR,x              ; 4 (4)
+        and #.MASK              ; 2 (6)
         IF .BITPOS != 1
             REPEAT .BITPOS
-                lsr
+                lsr             ; 2 (2)
             REPEND
         ENDIF
     ENDM
@@ -246,10 +246,10 @@
 ; 0001 0001 -> Y
 
         ; do the addition
-        lda .VAR,x
-        clc
-        adc #.ADD
-        sta .VAR,x
+        lda .VAR,x      ; 4 (4)
+        clc             ; 2 (6)
+        adc #.ADD       ; 2 (8)
+        sta .VAR,x      ; 4 (12)
     ENDM
 
 ; -----------------------------------------------------------------------------

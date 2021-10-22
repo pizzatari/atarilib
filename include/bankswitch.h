@@ -1,7 +1,12 @@
 ; -----------------------------------------------------------------------------
 ; Macros and subroutines for calling a procedure in another bank.
 ;
-;   Routines must reside at the same address offset within each bank.
+;   Routines must reside in the same page and the same address offset
+;   within each bank.
+;
+;   Routines must also be relocated to their own address spaces for bank
+;   detection to work:
+;       RORG: ... $9000, $b000, $d000, $f000
 ;
 ;   INCLUDE_BANKSWITCH_SUBS (bank#)
 ;
@@ -10,8 +15,7 @@
 ;
 ; -----------------------------------------------------------------------------
 
-BS_SIZEOF = $2d
-BS_VERSION = 2
+BS_SIZEOF = 35  ; bytes
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
@@ -26,7 +30,7 @@ BS_VERSION = 2
         ldx #.DEST_BANK         ; 2 (2)
         lda #<.PROC             ; 2 (4)
         ldy #>.PROC             ; 2 (6)
-        jsr .CALL_SUB           ; 6 (12)
+        jsr .CALL_SUB           ; 51 (57)
     ENDM
 
 ; -----------------------------------------------------------------------------
@@ -42,7 +46,7 @@ BS_VERSION = 2
         ldx #.DEST_BANK         ; 2 (2)
         lda #<.LABEL            ; 2 (4)
         ldy #>.LABEL            ; 2 (6)
-        jmp .JUMP_SUB           ; 3 (9)
+        jmp .JUMP_SUB           ; 18 (24)
     ENDM
 
     MAC INCLUDE_BANKSWITCH_SUBS
@@ -53,29 +57,29 @@ BS_VERSION = 2
     ;           Y register (destination subroutine MSB)
     ; Outputs:
     ; -------------------------------------------------------------------------
-Bank{1}_CallBank SUBROUTINE 
+Bank{1}_CallBank SUBROUTINE     ; 6 (6)
 
-    sta TempPtr                 ; 3 (3)     save subroutine
-    sty TempPtr+1               ; 3 (6)
+    sta TempPtr                 ; 3 (9)     save subroutine
+    sty TempPtr+1               ; 3 (12)
 
     ; save source bank number
-    lda #{1}                    ; 2 (8)
-    pha                         ; 3 (11)
+    lda #{1}                    ; 2 (14)
+    pha                         ; 3 (17)
 
-    lda BANK0_HOTSPOT,x         ; 4 (15)    do the bankswitch
+    lda BANK0_HOTSPOT,x         ; 4 (21)    do the bankswitch
 
-    lda #>(.Return-1)           ; 2 (17)    push the return address
-    pha                         ; 3 (20)
-    lda #<(.Return-1)           ; 2 (22)
-    pha                         ; 3 (25)
+    lda #>(.Return-1)           ; 2 (23)    push the return address
+    pha                         ; 3 (26)
+    lda #<(.Return-1)           ; 2 (28)
+    pha                         ; 3 (31)
 
-    jmp (TempPtr)               ; 5 (30)    do the subroutine call
+    jmp (TempPtr)               ; 5 (36)    do the subroutine call
 
 .Return
-    pla                         ; 3 (33)    retrieve source bank number
-    tax                         ; 2 (35)
-    lda BANK0_HOTSPOT,x         ; 4 (39)    do the return bank switch
-    rts                         ; 6 (45)
+    pla                         ; 3 (39)    retrieve source bank number
+    tax                         ; 2 (41)
+    lda BANK0_HOTSPOT,x         ; 4 (45)    do the return bank switch
+    rts                         ; 6 (51)
 
     ; -------------------------------------------------------------------------
     ; Desc:     Jump to a label in another bank.
@@ -84,11 +88,11 @@ Bank{1}_CallBank SUBROUTINE
     ;           Y register (destination subroutine MSB)
     ; Outputs:
     ; -------------------------------------------------------------------------
-Bank{1}_JumpBank SUBROUTINE
+Bank{1}_JumpBank SUBROUTINE     ; 3 (3)
     ; push destination address
-    sta TempPtr                 ; 3 (3)     save subroutine
-    sty TempPtr+1               ; 3 (6)
+    sta TempPtr                 ; 3 (6)     save subroutine
+    sty TempPtr+1               ; 3 (9)
 
-    lda BANK0_HOTSPOT,x         ; 4 (10)    do the bankswitch
-    jmp (TempPtr)               ; 5 (15)    call the subroutine
+    lda BANK0_HOTSPOT,x         ; 4 (13)    do the bankswitch
+    jmp (TempPtr)               ; 5 (18)    call the subroutine
     ENDM
