@@ -7,8 +7,7 @@
 ; Routines must be RORG'ed beginning at $1000 and follow every odd block.
 ;   RORG: $1000, $3000, $5000....
 ;
-; For faster routines, however the calling footprint is larger and the
-; Y register is used.
+; Faster version: the calling footprint is larger and the Y register is used.
 ;   FAST_CALL = 1   ; 0 to disable
 ;
 ; Example:
@@ -86,9 +85,11 @@ BS_SIZEOF   = 49
     ; Desc:     Call a procedure in another bank.
     ; Inputs:   A register (destination subroutine MSB)
     ;           X register (destination subroutine LSB)
+    ;           [Y register (destination bank)]
     ; Outputs:
     ; Example;  lda #>Subroutine
     ;           ldx #<Subroutine
+    ;           ;ldy #1
     ;           jsr Bank0_CallBank
     ; -------------------------------------------------------------------------
 Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
@@ -136,9 +137,11 @@ Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
     ; Desc:     Jump to a label in another bank.
     ; Inputs:   A register (destination subroutine MSB)
     ;           X register (destination subroutine LSB)
+    ;           [Y register (destination bank)]
     ; Outputs:
     ; Example;  lda #>Label
     ;           ldx #<Label
+    ;           ;ldy #1
     ;           jmp Bank0_JumpBank
     ; -------------------------------------------------------------------------
 Bank,CURR_BANK,"_JumpBank" SUBROUTINE; 3 (3) [3]
