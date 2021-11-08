@@ -145,7 +145,7 @@ Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
     ;           jmp Bank0_JumpBank
     ; -------------------------------------------------------------------------
 Bank,CURR_BANK,"_JumpBank" SUBROUTINE; 3 (3) [3]
-.HOTSPOT = BANK0_RORG + [CURR_BANK * $2000] + HOTSPOT_OFFSET
+.HOTSPOT = (. & $f000) + (CURR_BANK * $2000) + HOTSPOT_OFFSET
 
     ; push destination address
     stx TempPtr                 ; 3 (6) [6]     save subroutine
