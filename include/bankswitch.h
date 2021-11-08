@@ -1,21 +1,31 @@
 ; -----------------------------------------------------------------------------
 ; Macros and subroutines for calling a procedure in another bank.
 ;
-;   Routines must reside in the same page and the same address offset
-;   within each bank.
+; Call and Jump subroutines must be positioned at the same offset within a
+; single page for every bank with callable subroutines or labels.
 ;
-;   Routines must also be relocated to their own address spaces for bank
-;   detection to work:
-;       RORG: ... $9000, $b000, $d000, $f000
+; Routines must be RORG'ed beginning at $1000 and follow every odd block.
+;   RORG: $1000, $3000, $5000....
 ;
-;   INCLUDE_BANKSWITCH_SUBS (bank#)
+; For faster routines, however the calling footprint is larger and the
+; Y register is used.
+;   FAST_CALL = 1   ; 0 to disable
 ;
-;   CALL_BANK Procedure         ; 57 cycle overhead
-;   JUMP_BANK Label             ; 24 cycle overhead
-;
+; Example:
+;   INCLUDE_BANKSWITCH_SUBS
+;   CALL_BANK Procedure
+;   JUMP_BANK Label
 ; -----------------------------------------------------------------------------
 
-BS_SIZEOF = 35  ; bytes
+    IFNCONST BS_FAST_CALLS
+BS_FAST_CALLS SET 0
+    ENDIF
+
+    IF BS_FAST_CALLS == 1
+BS_SIZEOF   = 35
+    ELSE
+BS_SIZEOF   = 49
+    ENDIF
 
 ; -----------------------------------------------------------------------------
 ; Desc:     Call a procedure in another bank.
@@ -24,13 +34,21 @@ BS_SIZEOF = 35  ; bytes
 ; -----------------------------------------------------------------------------
     MAC CALL_BANK
 .PROC       SET {1}
-.DEST_BANK  SET (((.PROC & $f000) - BANK0_RORG) >> 13)
+.DEST_BANK  SET {1} / $2000
 .CALL_SUB   SET (Bank0_CallBank & $0fff) | (. & $f000)
 
-        ldx #.DEST_BANK         ; 2 (2)
-        lda #<.PROC             ; 2 (4)
-        ldy #>.PROC             ; 2 (6)
-        jsr .CALL_SUB           ; 51 (57)
+        ; check for a call within the same bank
+        IF (. & $f000) == (.PROC & $f000)
+            jsr .PROC
+        ELSE
+            IF BS_FAST_CALLS == 1
+            ldy #.DEST_BANK         ; 2 [2]
+            ENDIF
+
+            lda #>.PROC             ; 2 (2) [4]
+            ldx #<.PROC             ; 2 (4) [6]
+            jsr .CALL_SUB           ; 63 (67) 51 [57]
+        ENDIF
     ENDM
 
 ; -----------------------------------------------------------------------------
@@ -40,59 +58,109 @@ BS_SIZEOF = 35  ; bytes
 ; -----------------------------------------------------------------------------
     MAC JUMP_BANK
 .LABEL      SET {1}
-.DEST_BANK  SET (((.LABEL & $f000) - BANK0_RORG) >> 13)
+.DEST_BANK  SET {1} / $2000
 .JUMP_SUB   SET (Bank0_JumpBank & $0fff) | (. & $f000)
 
-        ldx #.DEST_BANK         ; 2 (2)
-        lda #<.LABEL            ; 2 (4)
-        ldy #>.LABEL            ; 2 (6)
-        jmp .JUMP_SUB           ; 18 (24)
+        ; check for a jump within the same bank
+        IF (. & $f000) == (.LABEL & $f000)
+            jmp .LABEL
+        ELSE
+            IF BS_FAST_CALLS == 1
+            ldy #.DEST_BANK         ; 2 [2]
+            ENDIF
+
+            lda #>.LABEL            ; 2 (2) [2]
+            ldx #<.LABEL            ; 2 (4) [4]
+            jmp .JUMP_SUB           ; 34 (38) 18 [24]
+        ENDIF
     ENDM
 
-    MAC INCLUDE_BANKSWITCH_SUBS
     ; -------------------------------------------------------------------------
-    ; Desc:     Call a procedure in another bank.
-    ; Inputs:   X register (destination bank #)
-    ;           A register (destination subroutine LSB)
-    ;           Y register (destination subroutine MSB)
+    ; Desc:     Defines bankswitching subroutines.
+    ; Param:    source bank #
     ; Outputs:
     ; -------------------------------------------------------------------------
-Bank{1}_CallBank SUBROUTINE     ; 6 (6)
+    MAC INCLUDE_BANKSWITCH_SUBS
 
-    sta TempPtr                 ; 3 (9)     save subroutine
-    sty TempPtr+1               ; 3 (12)
+    ; -------------------------------------------------------------------------
+    ; Desc:     Call a procedure in another bank.
+    ; Inputs:   A register (destination subroutine MSB)
+    ;           X register (destination subroutine LSB)
+    ; Outputs:
+    ; Example;  lda #>Subroutine
+    ;           ldx #<Subroutine
+    ;           jsr Bank0_CallBank
+    ; -------------------------------------------------------------------------
+Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
+.HOTSPOT = (. & $f000) + (CURR_BANK * $2000) + HOTSPOT_OFFSET
 
-    ; save source bank number
-    lda #{1}                    ; 2 (14)
-    pha                         ; 3 (17)
+    stx TempPtr                 ; 3 (9) [9]    save subroutine
+    sta TempPtr+1               ; 3 (12) [12]
 
-    lda BANK0_HOTSPOT,x         ; 4 (21)    do the bankswitch
+    IF BS_FAST_CALLS == 1
+        ; save source bank number
+        lda #CURR_BANK          ; 2 [14]
+        pha                     ; 3 [17]
 
-    lda #>(.Return-1)           ; 2 (23)    push the return address
-    pha                         ; 3 (26)
-    lda #<(.Return-1)           ; 2 (28)
-    pha                         ; 3 (31)
+        lda .HOTSPOT,y          ; 4 [21]
+    ELSE
+        ; destination bank number
+        and #$70                ; 2 (14)
+        asl                     ; 2 (16)
+        rol                     ; 2 (18)
+        rol                     ; 2 (20)
+        rol                     ; 2 (22)
+        tax                     ; 2 (24)
 
-    jmp (TempPtr)               ; 5 (36)    do the subroutine call
+        ; save source bank number
+        lda #CURR_BANK          ; 2 (26)
+        pha                     ; 3 (29)
+
+        lda .HOTSPOT,x          ; 4 (33)
+    ENDIF
+
+    lda #>(.Return-1)           ; 2 (35) [23]    push the return address
+    pha                         ; 3 (38) [26]
+    lda #<(.Return-1)           ; 2 (40) [28]
+    pha                         ; 3 (43) [31]
+
+    jmp (TempPtr)               ; 5 (48) [36]    do the subroutine call
 
 .Return
-    pla                         ; 3 (39)    retrieve source bank number
-    tax                         ; 2 (41)
-    lda BANK0_HOTSPOT,x         ; 4 (45)    do the return bank switch
-    rts                         ; 6 (51)
+    pla                         ; 3 (51) [39]    retrieve source bank number
+    tax                         ; 2 (53) [41]
+    lda .HOTSPOT,x              ; 4 (57) [45]    do the return bank switch
+    rts                         ; 6 (63) [51]
 
     ; -------------------------------------------------------------------------
     ; Desc:     Jump to a label in another bank.
-    ; Inputs:   X register (destination bank #)
-    ;           A register (destination subroutine LSB)
-    ;           Y register (destination subroutine MSB)
+    ; Inputs:   A register (destination subroutine MSB)
+    ;           X register (destination subroutine LSB)
     ; Outputs:
+    ; Example;  lda #>Label
+    ;           ldx #<Label
+    ;           jmp Bank0_JumpBank
     ; -------------------------------------------------------------------------
-Bank{1}_JumpBank SUBROUTINE     ; 3 (3)
-    ; push destination address
-    sta TempPtr                 ; 3 (6)     save subroutine
-    sty TempPtr+1               ; 3 (9)
+Bank,CURR_BANK,"_JumpBank" SUBROUTINE; 3 (3) [3]
+.HOTSPOT = BANK0_RORG + [CURR_BANK * $2000] + HOTSPOT_OFFSET
 
-    lda BANK0_HOTSPOT,x         ; 4 (13)    do the bankswitch
-    jmp (TempPtr)               ; 5 (18)    call the subroutine
+    ; push destination address
+    stx TempPtr                 ; 3 (6) [6]     save subroutine
+    sta TempPtr+1               ; 3 (9) [9]
+
+    IF BS_FAST_CALLS == 1
+        lda .HOTSPOT,y          ; 4 [13]        do the bankswitch
+    ELSE
+        ; destination bank number
+        and #$70                ; 2 (11)
+        asl                     ; 2 (13)
+        rol                     ; 2 (15)
+        rol                     ; 2 (17)
+        rol                     ; 2 (19)
+        tax                     ; 2 (21)
+        lda .HOTSPOT,x          ; 4 (25)        do the bankswitch
+    ENDIF
+
+    jmp (TempPtr)               ; 5 (30) [18]   call the subroutine
+
     ENDM
