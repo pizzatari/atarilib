@@ -68,8 +68,8 @@ BS_SIZEOF   = 49
             ldy #.DEST_BANK         ; 2 [2]
             ENDIF
 
-            lda #>.LABEL            ; 2 (2) [2]
-            ldx #<.LABEL            ; 2 (4) [4]
+            lda #>.LABEL            ; 2 (2) [4]
+            ldx #<.LABEL            ; 2 (4) [6]
             jmp .JUMP_SUB           ; 34 (38) 18 [24]
         ENDIF
     ENDM
