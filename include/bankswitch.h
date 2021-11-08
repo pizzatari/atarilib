@@ -93,7 +93,7 @@ BS_SIZEOF   = 49
     ;           jsr Bank0_CallBank
     ; -------------------------------------------------------------------------
 Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
-.HOTSPOT = (. & $f000) + (CURR_BANK * $2000) + HOTSPOT_OFFSET
+.HOTSPOT = (. & $f000) + HOTSPOT_OFFSET
 
     stx TempPtr                 ; 3 (9) [9]    save subroutine
     sta TempPtr+1               ; 3 (12) [12]
@@ -145,7 +145,7 @@ Bank,CURR_BANK,"_CallBank" SUBROUTINE; 6 (6) [6]
     ;           jmp Bank0_JumpBank
     ; -------------------------------------------------------------------------
 Bank,CURR_BANK,"_JumpBank" SUBROUTINE; 3 (3) [3]
-.HOTSPOT = (. & $f000) + (CURR_BANK * $2000) + HOTSPOT_OFFSET
+.HOTSPOT = (. & $f000) + HOTSPOT_OFFSET
 
     ; push destination address
     stx TempPtr                 ; 3 (6) [6]     save subroutine
